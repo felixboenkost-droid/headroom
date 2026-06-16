@@ -132,10 +132,7 @@ def assign_arm(conversation_key: str, holdout_fraction: float) -> str:
         return "treatment"
     if holdout_fraction >= 1.0:
         return "control"
-    digest = hashlib.sha256(("arm:" + conversation_key).encode()).hexdigest()
-    # Map the first 8 hex digits to [0, 1).
-    frac = int(digest[:8], 16) / 0xFFFFFFFF
-    return "control" if frac < holdout_fraction else "treatment"
+    frac = int(digest[:8], 16) / 0x100000000
 
 
 @dataclass

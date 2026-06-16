@@ -113,10 +113,23 @@ def conversation_key_from_body(body: dict[str, Any]) -> str:
             if isinstance(content, str):
                 seed += "\x00" + content[:512]
             elif isinstance(content, list):
+                text = None
                 for block in content:
                     if isinstance(block, dict) and block.get("type") == "text":
-                        seed += "\x00" + str(block.get("text", ""))[:512]
+                        text = str(block.get("text", ""))
                         break
+                if text is not None:
+                    seed += "\x00" + text[:512]
+                else:
+                    try:
+                        seed += "\x00" + json.dumps(content, sort_keys=True)[:512]
+                    except TypeError:
+                        seed += "\x00" + str(content)[:512]
+            else:
+                try:
+                    seed += "\x00" + json.dumps(content, sort_keys=True)[:512]
+                except TypeError:
+                    seed += "\x00" + str(content)[:512]
             break
     return hashlib.sha256(seed.encode("utf-8", "ignore")).hexdigest()
 
